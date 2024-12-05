@@ -3,7 +3,7 @@ name: Lambda Despliegue
 on:
   push:
     branches:
-      - main  # Ejecutar el pipeline al hacer push en la rama "main"
+      - main 
 
 jobs:
   deploy:
@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3  # Clona el repositorio desde GitHub
+      uses: actions/checkout@v3 
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
@@ -22,14 +22,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y zip  # Asegúrate de que `zip` esté instalado
+        sudo apt-get install -y zip 
 
     - name: Package Lambda function
       run: |
-        zip -j lambda_function.zip index.py  # Empaqueta index.py en un archivo ZIP
+        zip -j lambda_function.zip index.py  
 
     - name: Deploy to AWS Lambda
       run: |
         aws lambda update-function-code \
-          --function-name GestionPedidos \  # Nombre exacto de tu función Lambda en AWS
+          --function-name GestionPedidos \  
           --zip-file fileb://lambda_function.zip
