@@ -1,0 +1,27 @@
+name: Lambda Despliegue
+
+on:
+  push:
+    branches:
+      - main  # Ejecutar el pipeline al hacer push en la rama principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # Clona el repositorio
+
+    - name: Package Lambda function
+      run: |
+        zip -j lambda_function.zip index.py  # Crea un ZIP con el archivo Lambda
+
+    - name: Deploy to AWS Lambda
+      uses: aws-actions/aws-lambda-deploy@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        function-name: "GestionPedidos" 
+        zip-file: "lambda_function.zip"
