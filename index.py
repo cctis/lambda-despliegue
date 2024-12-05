@@ -1,6 +1,5 @@
 import boto3
 import json
-####
 
 
 # Inicializar el cliente de DynamoDB
