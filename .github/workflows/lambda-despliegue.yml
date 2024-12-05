@@ -3,7 +3,7 @@ name: Lambda Despliegue
 on:
   push:
     branches:
-      - main  # Ejecutar el pipeline al hacer push en la rama principal
+      - main  # Ejecutar el pipeline al hacer push en la rama "main"
 
 jobs:
   deploy:
@@ -13,15 +13,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3  # Clona el repositorio
 
-    - name: Package Lambda function
-      run: |
-        zip -j lambda_function.zip index.py  # Crea un ZIP con el archivo Lambda
-
-    - name: Deploy to AWS Lambda
-      uses: aws-actions/aws-lambda-deploy@v1
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-        function-name: "GestionPedidos" 
-        zip-file: "lambda_function.zip"
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y zip  # Asegúrate de que la herramienta `zip` esté instalada
+
+    - name: Package Lambda function
+      run: |
+        zip -j lambda_function.zip index.py  # Crea un ZIP con el código de Lambda
+
+    - name: Deploy to AWS Lambda
+      run: |
+        aws lambda update-function-code \
+          --function-name GestionPedidos \
+          --zip-file fileb://lambda_function.zip
