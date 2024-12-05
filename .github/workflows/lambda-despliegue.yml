@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3  # Clona el repositorio
+      uses: actions/checkout@v3  # Clona el repositorio desde GitHub
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
@@ -22,14 +22,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y zip  # Asegúrate de que la herramienta `zip` esté instalada
+        sudo apt-get install -y zip  # Asegúrate de que `zip` esté instalado
 
     - name: Package Lambda function
       run: |
-        zip -j lambda_function.zip index.py  # Crea un ZIP con el código de Lambda
+        zip -j lambda_function.zip index.py  # Empaqueta index.py en un archivo ZIP
 
     - name: Deploy to AWS Lambda
       run: |
         aws lambda update-function-code \
-          --function-name GestionPedidos \
+          --function-name GestionPedidos \  # Nombre exacto de tu función Lambda en AWS
           --zip-file fileb://lambda_function.zip
