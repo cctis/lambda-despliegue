@@ -1,6 +1,6 @@
 import boto3
 import json
-
+##probando
 
 # Inicializar el cliente de DynamoDB
 dynamodb = boto3.resource('dynamodb')
