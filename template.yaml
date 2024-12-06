@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  # Tabla DynamoDB
+  PedidosTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Pedidos
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  # Función Lambda
+  GestionPedidosFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: GestionPedidos
+      Handler: index.lambda_handler
+      Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+
+          dynamodb = boto3.resource('dynamodb')
+          table = dynamodb.Table('Pedidos')
+
+          def lambda_handler(event, context):
+              response = table.scan()
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps(response['Items'])
+              }
+
+  # Role para Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource: !GetAtt PedidosTable.Arn
+
+  # API Gateway
+  PedidosAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: pedidosApi
+  PedidosResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt pedidosApi.RootResourceId
+      PathPart: pedidos
+      RestApiId: !Ref pedidosApi
+  PedidosMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref GestionPedidos
+      ResourceId: !Ref PedidosResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${GestionPedidosFunction.Arn}/invocations
+          - Region: !Ref "AWS::Region"
+
+Outputs:
+  ApiUrl:
+    Value: !Sub "https://${pedidosApi}.execute-api.${AWS::Region}.amazonaws.com"
+    Description: URL base del API Gateway
