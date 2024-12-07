@@ -7,22 +7,33 @@ pedidos_table = dynamodb.Table('Pedidos')
 
 def lambda_handler(event, context):
     try:
-        # Obtener la ruta del evento
-        path = event['path']
-        
-        # Gestionar rutas de acuerdo a la estructura
+        # Obtener el método HTTP y la ruta desde el evento
+        method = event['requestContext']['http']['method']  # Método HTTP
+        path = event['rawPath']  # Ruta de la solicitud
+
+        # Gestionar rutas de acuerdo al método y la ruta
         if path == "/GestionPedidos":
-            if event.get('body'):  # Si hay cuerpo, es un POST
+            if method == "POST" and event.get('body'):  # POST para crear pedido
                 return crear_pedido(event)
-            else:  # Si no hay cuerpo, es un GET
+            elif method == "GET":  # GET para obtener todos los pedidos
                 return obtener_pedidos()
+            else:
+                return {
+                    'statusCode': 405,
+                    'body': json.dumps({'mensaje': 'Método no permitido en esta ruta'})
+                }
         
         elif path.startswith("/GestionPedidos/"):
             id_pedido = path.split("/")[-1]  # Obtener el ID desde la URL
-            if event.get('body'):  # Si hay cuerpo, es un PUT
+            if method == "PUT" and event.get('body'):  # PUT para actualizar pedido
                 return actualizar_pedido(event, id_pedido)
-            else:  # Si no hay cuerpo, es un DELETE
+            elif method == "DELETE":  # DELETE para eliminar pedido
                 return eliminar_pedido(id_pedido)
+            else:
+                return {
+                    'statusCode': 405,
+                    'body': json.dumps({'mensaje': 'Método no permitido en esta ruta'})
+                }
 
         else:
             return {
