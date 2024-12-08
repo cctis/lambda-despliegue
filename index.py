@@ -1,150 +1,179 @@
 import boto3
 import json
-
+##prueba
 # Inicializar el cliente de DynamoDB
 dynamodb = boto3.resource('dynamodb')
 pedidos_table = dynamodb.Table('Pedidos')
 
 def lambda_handler(event, context):
-    try:
-        # Obtener el método HTTP y la ruta desde el evento
-        method = event['requestContext']['http']['method']  # Método HTTP
-        path = event['rawPath']  # Ruta de la solicitud
+    # Imprimir el evento completo para ver qué contiene
+    print("Evento completo recibido:", json.dumps(event))  # Muestra todo el evento
+    
+    # Obtener la clave de la ruta de la solicitud (routeKey)
+    route_key = event.get('routeKey', '')
+    print("RouteKey de la solicitud:", route_key)
 
-        # Gestionar rutas de acuerdo al método y la ruta
-        if path == "/GestionPedidos":
-            if method == "POST" and event.get('body'):  # POST para crear pedido
-                return crear_pedido(event)
-            elif method == "GET":  # GET para obtener todos los pedidos
-                return obtener_pedidos()
-            else:
-                return {
-                    'statusCode': 405,
-                    'body': json.dumps({'mensaje': 'Método no permitido en esta ruta'})
-                }
-        
-        elif path.startswith("/GestionPedidos/"):
-            id_pedido = path.split("/")[-1]  # Obtener el ID desde la URL
-            if method == "PUT" and event.get('body'):  # PUT para actualizar pedido
-                return actualizar_pedido(event, id_pedido)
-            elif method == "DELETE":  # DELETE para eliminar pedido
-                return eliminar_pedido(id_pedido)
-            else:
-                return {
-                    'statusCode': 405,
-                    'body': json.dumps({'mensaje': 'Método no permitido en esta ruta'})
-                }
-
-        else:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'mensaje': 'Ruta no encontrada'})
-            }
-
-    except Exception as e:
-        print(f"Error interno: {str(e)}")
+    # Verificamos el valor de routeKey para determinar qué acción tomar
+    if route_key == "GET /GestionPedidos/getbyid/{id}":
+        return obtener_pedido_por_id(event)
+    elif route_key == "GET /GestionPedidos/GetAll":
+        return obtener_todos_pedidos()
+    elif route_key == "POST /GestionPedidos/Save":
+        return guardar_pedido(event)
+    elif route_key == "PUT /GestionPedidos/{id}":
+        return actualizar_pedido(event)
+    elif route_key == "DELETE /GestionPedidos/{id}":
+        return eliminar_pedido(event)
+    else:
+        # Ruta no soportada
         return {
-            'statusCode': 500,
-            'body': json.dumps({'mensaje': f'Error interno: {str(e)}'})
+            'statusCode': 404,
+            'body': json.dumps({'mensaje': 'Ruta no soportada', 'routeKey': route_key})
         }
 
-# Función para obtener todos los pedidos (GET)
-def obtener_pedidos():
+def obtener_todos_pedidos():
     try:
+        # Recuperar todos los pedidos
         response = pedidos_table.scan()
         pedidos = response.get('Items', [])
-
+        
         if not pedidos:
             return {
-                'statusCode': 200,
-                'body': json.dumps({
-                    'mensaje': 'No se encontraron pedidos.',
-                    'pedidos': []
-                })
+                'statusCode': 404,
+                'body': json.dumps({'mensaje': 'No se encontraron pedidos'})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({
-                'mensaje': 'Pedidos obtenidos con éxito.',
-                'pedidos': pedidos
-            })
+            'body': json.dumps({'mensaje': 'Pedidos recuperados con éxito', 'pedidos': pedidos})
         }
-
     except Exception as e:
-        print(f"Error al obtener los pedidos: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'mensaje': f'Error interno: {str(e)}'})
+            'body': json.dumps({'mensaje': f'Error al obtener pedidos: {str(e)}'})
         }
 
-# Función para crear un nuevo pedido (POST)
-def crear_pedido(event):
-    body = json.loads(event['body'])
-    Id = body.get('Id')
-    detalle = body.get('detalle')
-
+def guardar_pedido(event):
     try:
+        body = json.loads(event['body'])
+        Id = body.get('Id')
+        detalle = body.get('detalle')
+        estado = 'En preparación'  # Estado por defecto al guardar el pedido
+        
+        # Crear el pedido
         pedido = {
             'Id': Id,
-            'estado': 'En preparación',  # Estado inicial
-            'detalle': detalle
+            'detalle': detalle,
+            'estado': estado
+        }
+        
+        # Guardar en DynamoDB
+        pedidos_table.put_item(Item=pedido)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'mensaje': 'Pedido guardado con éxito', 'pedido': pedido})
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'mensaje': f'Error al guardar el pedido: {str(e)}'})
         }
 
-        pedidos_table.put_item(Item=pedido)
+def obtener_pedido_por_id(event):
+    try:
+        # Obtener el ID de la ruta
+        path_parameters = event.get('pathParameters', {})
+        pedido_id = path_parameters.get('id')
+        
+        if not pedido_id:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
+            }
+        
+        # Buscar el pedido en DynamoDB por ID
+        response = pedidos_table.get_item(Key={'Id': pedido_id})
+        pedido = response.get('Item', None)
+        
+        if not pedido:
+            return {
+                'statusCode': 404,
+                'body': json.dumps({'mensaje': 'Pedido no encontrado'})
+            }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({
-                'mensaje': 'Pedido guardado con éxito.',
-                'pedido': pedido
-            })
+            'body': json.dumps({'mensaje': 'Pedido recuperado con éxito', 'pedido': pedido})
         }
-
     except Exception as e:
-        print(f"Error al crear el pedido: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'mensaje': f'Error interno: {str(e)}'})
+            'body': json.dumps({'mensaje': f'Error al obtener el pedido: {str(e)}'})
         }
 
-# Función para actualizar un pedido (PUT)
-def actualizar_pedido(event, id_pedido):
-    body = json.loads(event['body'])
-    nuevo_estado = body.get('estado')
-
+def actualizar_pedido(event):
     try:
-        pedidos_table.update_item(
-            Key={'Id': id_pedido},
-            UpdateExpression="SET estado = :estado",
-            ExpressionAttributeValues={':estado': nuevo_estado}
+        # Obtener el ID del pedido a actualizar de la ruta
+        path_parameters = event.get('pathParameters', {})
+        pedido_id = path_parameters.get('id')
+        
+        if not pedido_id:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
+            }
+        
+        # Obtener los datos del pedido a actualizar
+        body = json.loads(event['body'])
+        detalle = body.get('detalle')
+        estado = body.get('estado')
+
+        # Actualizar el pedido en DynamoDB
+        update_expression = "SET detalle = :detalle, estado = :estado"
+        expression_values = {
+            ":detalle": detalle,
+            ":estado": estado
+        }
+
+        response = pedidos_table.update_item(
+            Key={'Id': pedido_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_values,
+            ReturnValues="UPDATED_NEW"
         )
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'mensaje': 'Pedido actualizado con éxito.'})
+            'body': json.dumps({'mensaje': 'Pedido actualizado con éxito', 'pedido': response['Attributes']})
         }
-
     except Exception as e:
-        print(f"Error al actualizar el pedido: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'mensaje': f'Error interno: {str(e)}'})
+            'body': json.dumps({'mensaje': f'Error al actualizar el pedido: {str(e)}'})
         }
 
-# Función para eliminar un pedido (DELETE)
-def eliminar_pedido(id_pedido):
+def eliminar_pedido(event):
     try:
-        pedidos_table.delete_item(Key={'Id': id_pedido})
+        # Obtener el ID del pedido a eliminar de la ruta
+        path_parameters = event.get('pathParameters', {})
+        pedido_id = path_parameters.get('id')
+        
+        if not pedido_id:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
+            }
 
+        # Eliminar el pedido de DynamoDB
+        response = pedidos_table.delete_item(Key={'Id': pedido_id})
+        
         return {
             'statusCode': 200,
-            'body': json.dumps({'mensaje': f'Pedido con ID {id_pedido} eliminado con éxito.'})
+            'body': json.dumps({'mensaje': 'Pedido eliminado con éxito'})
         }
-
     except Exception as e:
-        print(f"Error al eliminar el pedido: {str(e)}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'mensaje': f'Error interno: {str(e)}'})
+            'body': json.dumps({'mensaje': f'Error al eliminar el pedido: {str(e)}'})
         }
