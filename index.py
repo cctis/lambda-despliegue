@@ -28,10 +28,6 @@ def lambda_handler(event, context):
         # Ruta no soportada
         return {
             'statusCode': 404,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Ruta no soportada', 'routeKey': route_key})
         }
 
@@ -44,28 +40,16 @@ def obtener_todos_pedidos():
         if not pedidos:
             return {
                 'statusCode': 404,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
                 'body': json.dumps({'mensaje': 'No se encontraron pedidos'})
             }
 
         return {
             'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Pedidos recuperados con éxito', 'pedidos': pedidos})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': f'Error al obtener pedidos: {str(e)}'})
         }
 
@@ -88,19 +72,11 @@ def guardar_pedido(event):
         
         return {
             'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Pedido guardado con éxito', 'pedido': pedido})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': f'Error al guardar el pedido: {str(e)}'})
         }
 
@@ -113,10 +89,6 @@ def obtener_pedido_por_id(event):
         if not pedido_id:
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
                 'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
             }
         
@@ -127,28 +99,16 @@ def obtener_pedido_por_id(event):
         if not pedido:
             return {
                 'statusCode': 404,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
                 'body': json.dumps({'mensaje': 'Pedido no encontrado'})
             }
 
         return {
             'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Pedido recuperado con éxito', 'pedido': pedido})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': f'Error al obtener el pedido: {str(e)}'})
         }
 
@@ -161,10 +121,6 @@ def actualizar_pedido(event):
         if not pedido_id:
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
                 'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
             }
         
@@ -189,19 +145,11 @@ def actualizar_pedido(event):
 
         return {
             'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Pedido actualizado con éxito', 'pedido': response['Attributes']})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': f'Error al actualizar el pedido: {str(e)}'})
         }
 
@@ -214,10 +162,6 @@ def eliminar_pedido(event):
         if not pedido_id:
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
                 'body': json.dumps({'mensaje': 'ID del pedido no proporcionado'})
             }
 
@@ -226,18 +170,10 @@ def eliminar_pedido(event):
         
         return {
             'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': 'Pedido eliminado con éxito'})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',  # Habilitar CORS
-                    'Access-Control-Allow-Methods': 'GET','POST','PUT','DELETE'
-                },
             'body': json.dumps({'mensaje': f'Error al eliminar el pedido: {str(e)}'})
         }
