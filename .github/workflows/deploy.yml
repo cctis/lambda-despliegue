@@ -20,9 +20,11 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
+        working-directory: ./pedidos-front 
         run: npm install
 
       - name: Run frontend tests (si tienes tests configurados)
+        working-directory: ./pedidos-front
         run: npm test  # Solo si tienes pruebas configuradas, puedes omitir esta parte si no tienes pruebas
 
   deploy:
