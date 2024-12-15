@@ -28,9 +28,4 @@ jobs:
     # Paso 3: Desplegar el frontend a la carpeta 'front' en S3
     - name: Deploy Frontend to S3
       run: |
-        aws s3 sync ./front/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
-
-    # Paso 4: Desplegar el backend a la carpeta 'back' en S3
-    - name: Deploy Backend to S3
-      run: |
-        aws s3 sync ./back/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/back/ --delete
+        aws s3 sync ./pedidos-frontend/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
