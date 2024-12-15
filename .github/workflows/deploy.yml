@@ -23,7 +23,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        region: us-east-1  # Ajusta la región si es necesario
+        aws-region: ${{ secrets.AWS_REGION }} # Ajusta la región si es necesario
 
     # Paso 3: Desplegar el frontend a la carpeta 'front' en S3
     - name: Deploy Frontend to S3
