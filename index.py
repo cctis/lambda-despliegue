@@ -1,6 +1,6 @@
 import boto3
 import json
-
+##prueba
 # Inicializar el cliente de DynamoDB
 dynamodb = boto3.resource('dynamodb')
 pedidos_table = dynamodb.Table('Pedidos')
