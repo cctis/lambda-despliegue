@@ -1,31 +1,81 @@
-name: Deploy to S3
+name: CI/CD for Frontend
 
 on:
   push:
     branches:
-      - main  # Puedes cambiar esto si es necesario
-  pull_request:
-    branches:
       - main
+    paths-ignore:
+      - 'cf-resources-template.yaml'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run frontend tests (si tienes tests configurados)
+        run: npm test  # Solo si tienes pruebas configuradas, puedes omitir esta parte si no tienes pruebas
+
   deploy:
     runs-on: ubuntu-latest
-
+    needs: test
     steps:
-    # Paso 1: Checkout el código fuente
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    # Paso 2: Configurar AWS CLI
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }} # Ajusta la región si es necesario
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
 
-    # Paso 3: Desplegar el frontend a la carpeta 'front' en S3
-    - name: Deploy Frontend to S3
-      run: |
-        aws s3 sync ./pedidos-front/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./pedidos-front
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./pedidos-front
+
+      - name: Deploy to S3
+        run: aws s3 sync ./pedidos-front/build s3://tu-bucket-s3 --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  # Job de notificación en caso de fallo
+  notify_failure:
+    runs-on: ubuntu-latest
+    needs: [test, deploy]  # Se ejecuta después de ambos jobs
+    if: failure()  # Solo se ejecuta si cualquiera de los jobs anteriores falla
+    steps:
+      - name: Send email notification on failure
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+        run: |
+          curl -X POST \
+          --url https://api.sendgrid.com/v3/mail/send \
+          -H "Authorization: Bearer $SENDGRID_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "personalizations": [{
+                  "to": [{"email": "'$TO_EMAIL'"}],
+                  "subject": "GitHub Actions Job Failed"
+                }],
+                "from": {"email": "'$FROM_EMAIL'"},
+                "content": [{
+                  "type": "text/plain",
+                  "value": "El flujo de trabajo en GitHub Actions falló. Por favor revisa los detalles en la pestaña de Actions en GitHub."
+                }]
+              }'
