@@ -1,0 +1,36 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - main  # Puedes cambiar esto si es necesario
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Paso 1: Checkout el código fuente
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Paso 2: Configurar AWS CLI
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        region: us-east-1  # Ajusta la región si es necesario
+
+    # Paso 3: Desplegar el frontend a la carpeta 'front' en S3
+    - name: Deploy Frontend to S3
+      run: |
+        aws s3 sync ./front/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
+
+    # Paso 4: Desplegar el backend a la carpeta 'back' en S3
+    - name: Deploy Backend to S3
+      run: |
+        aws s3 sync ./back/ s3://despliegue-s3-s3bucket-c8ifbetuj96b/back/ --delete
