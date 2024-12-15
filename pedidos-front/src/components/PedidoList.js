@@ -25,7 +25,7 @@ function PedidoList() {
 
   return (
     <div className="pedido-list">
-      <h2>Lista de Pedidos</h2>
+      <h2>Lista de Pedidos 1</h2>
       {mensaje && <p>{mensaje}</p>}
       {pedidos.length > 0 && (
         <table>
