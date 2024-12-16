@@ -20,7 +20,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        working-directory: ./pedidos-front 
+        working-directory: ./pedidos-frontend 
         run: npm install
 
   deploy:
@@ -37,14 +37,14 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./pedidos-front
+        working-directory: ./pedidos-frontend
 
       - name: Build frontend
         run: npm run build
-        working-directory: ./pedidos-front
+        working-directory: ./pedidos-frontend
 
       - name: Deploy to S3
-        run: aws s3 sync ./pedidos-front/build s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
+        run: aws s3 sync ./pedidos-frontend/build s3://despliegue-s3-s3bucket-c8ifbetuj96b/front/ --delete
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
