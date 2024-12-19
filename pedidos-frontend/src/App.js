@@ -30,6 +30,14 @@ function App() {
     obtenerPedidos();
   }, []);
 
+  // Mostrar mensaje temporal
+  const mostrarMensajeTemporal = (mensaje) => {
+    setMensaje(mensaje);
+    setTimeout(() => {
+      setMensaje("");
+    }, 3000); // Mensaje visible durante 3 segundos
+  };
+
   // Guardar o actualizar pedido
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,11 +50,11 @@ function App() {
           `https://w7y87cphve.execute-api.us-east-1.amazonaws.com/develop/GestionPedidos/${idEdicion}`,
           pedidoActualizado
         );
-        setMensaje(response.data.mensaje);
+        mostrarMensajeTemporal(response.data.mensaje);
         obtenerPedidos();
         limpiarFormulario();
       } catch (error) {
-        setMensaje("Error al actualizar el pedido.");
+        mostrarMensajeTemporal("Error al actualizar el pedido.");
         console.error(error);
       }
     } else {
@@ -57,11 +65,11 @@ function App() {
           "https://w7y87cphve.execute-api.us-east-1.amazonaws.com/develop/GestionPedidos/Save",
           nuevoPedido
         );
-        setMensaje(response.data.mensaje);
+        mostrarMensajeTemporal(response.data.mensaje);
         obtenerPedidos();
         limpiarFormulario();
       } catch (error) {
-        setMensaje("Error al guardar el pedido.");
+        mostrarMensajeTemporal("Error al guardar el pedido.");
         console.error(error);
       }
     }
@@ -73,10 +81,10 @@ function App() {
       const response = await axios.delete(
         `https://w7y87cphve.execute-api.us-east-1.amazonaws.com/develop/GestionPedidos/${id}`
       );
-      setMensaje(response.data.mensaje);
+      mostrarMensajeTemporal(response.data.mensaje);
       obtenerPedidos();
     } catch (error) {
-      setMensaje("Error al eliminar el pedido.");
+      mostrarMensajeTemporal("Error al eliminar el pedido.");
       console.error(error);
     }
   };
@@ -98,7 +106,7 @@ function App() {
   return (
     <div className="App">
       <h1>Gestión de Pedidos</h1>
-      <div className="mensaje">{mensaje && <p>{mensaje}</p>}</div>
+      {mensaje && <div className="mensaje">{mensaje}</div>}
 
       <form onSubmit={handleSubmit}>
         <h2>{idEdicion ? "Editar Pedido" : "Crear Pedido"}</h2>
@@ -120,8 +128,10 @@ function App() {
             required
           />
         </div>
-        <button type="submit">{idEdicion ? "Actualizar" : "Guardar"}</button>
-        {idEdicion && <button onClick={limpiarFormulario}>Cancelar</button>}
+        <div className="form-buttons">
+          <button type="submit">{idEdicion ? "Actualizar" : "Guardar"}</button>
+          {idEdicion && <button type="button" onClick={limpiarFormulario}>Cancelar</button>}
+        </div>
       </form>
 
       <h2>Lista de Pedidos</h2>
