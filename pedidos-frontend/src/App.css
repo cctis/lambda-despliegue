@@ -30,6 +30,14 @@ button:hover {
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
+button[type="button"] {
+  background: linear-gradient(90deg, #d9534f, #c9302c);
+}
+
+button[type="button"]:hover {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
 table {
   margin: 20px auto;
   width: 80%;
@@ -116,4 +124,36 @@ button[type="submit"]:hover {
   background: linear-gradient(90deg, #45a049, #379e39);
   transform: translateY(-2px);
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Añadido: Estilo para el mensaje temporal */
+.mensaje {
+  background-color: #dff0d8;
+  color: #3c763d;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #d6e9c6;
+  border-radius: 5px;
+  font-weight: bold;
+  animation: fadeOut 3s forwards;
+}
+
+/* Animación para desvanecer el mensaje */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Ajuste para botones dentro del formulario */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-buttons button {
+  width: 48%;
 }
