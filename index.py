@@ -1,5 +1,6 @@
 import boto3
 import json
+import uuid
 
 # Inicializar el cliente de DynamoDB
 dynamodb = boto3.resource('dynamodb')
@@ -58,7 +59,10 @@ def guardar_pedido(event):
         body = json.loads(event['body'])
         Id = body.get('Id')
         detalle = body.get('detalle')
-        estado = 'En preparación'  # Estado por defecto al guardar el pedido
+        estado = body.get('estado')
+
+        # Generar un ID automáticamente
+        Id = str(uuid.uuid4())
         
         # Crear el pedido
         pedido = {
